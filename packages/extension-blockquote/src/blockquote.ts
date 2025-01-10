@@ -1,6 +1,11 @@
-import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
+import { mergeAttributes, Node, wrappingInputRule } from '@tiptap/core'
 
 export interface BlockquoteOptions {
+  /**
+   * HTML attributes to add to the blockquote element
+   * @default {}
+   * @example { class: 'foo' }
+   */
   HTMLAttributes: Record<string, any>,
 }
 
@@ -23,8 +28,15 @@ declare module '@tiptap/core' {
   }
 }
 
+/**
+ * Matches a blockquote to a `>` as input.
+ */
 export const inputRegex = /^\s*>\s$/
 
+/**
+ * This extension allows you to create blockquotes.
+ * @see https://tiptap.dev/api/nodes/blockquote
+ */
 export const Blockquote = Node.create<BlockquoteOptions>({
 
   name: 'blockquote',
@@ -35,7 +47,7 @@ export const Blockquote = Node.create<BlockquoteOptions>({
     }
   },
 
-  content: 'block*',
+  content: 'block+',
 
   group: 'block',
 
@@ -54,13 +66,13 @@ export const Blockquote = Node.create<BlockquoteOptions>({
   addCommands() {
     return {
       setBlockquote: () => ({ commands }) => {
-        return commands.wrapIn('blockquote')
+        return commands.wrapIn(this.name)
       },
       toggleBlockquote: () => ({ commands }) => {
-        return commands.toggleWrap('blockquote')
+        return commands.toggleWrap(this.name)
       },
       unsetBlockquote: () => ({ commands }) => {
-        return commands.lift('blockquote')
+        return commands.lift(this.name)
       },
     }
   },

@@ -1,18 +1,17 @@
-import { EditorState } from 'prosemirror-state'
-import { NodeType } from 'prosemirror-model'
-import objectIncludes from '../utilities/objectIncludes'
-import getNodeType from './getNodeType'
-import { NodeRange } from '../types'
+import { NodeType } from '@tiptap/pm/model'
+import { EditorState } from '@tiptap/pm/state'
 
-export default function isNodeActive(
+import { NodeRange } from '../types.js'
+import { objectIncludes } from '../utilities/objectIncludes.js'
+import { getNodeType } from './getNodeType.js'
+
+export function isNodeActive(
   state: EditorState,
   typeOrName: NodeType | string | null,
   attributes: Record<string, any> = {},
 ): boolean {
   const { from, to, empty } = state.selection
-  const type = typeOrName
-    ? getNodeType(typeOrName, state.schema)
-    : null
+  const type = typeOrName ? getNodeType(typeOrName, state.schema) : null
 
   const nodeRanges: NodeRange[] = []
 
@@ -46,8 +45,7 @@ export default function isNodeActive(
     return !!matchedNodeRanges.length
   }
 
-  const range = matchedNodeRanges
-    .reduce((sum, nodeRange) => sum + nodeRange.to - nodeRange.from, 0)
+  const range = matchedNodeRanges.reduce((sum, nodeRange) => sum + nodeRange.to - nodeRange.from, 0)
 
   return range >= selectionRange
 }

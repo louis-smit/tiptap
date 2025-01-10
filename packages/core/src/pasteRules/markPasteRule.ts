@@ -1,30 +1,33 @@
-import { PasteRule, PasteRuleFinder } from '../PasteRule'
-import { MarkType } from 'prosemirror-model'
-import getMarksBetween from '../helpers/getMarksBetween'
-import callOrReturn from '../utilities/callOrReturn'
-import { ExtendedRegExpMatchArray } from '../types'
+import { MarkType } from '@tiptap/pm/model'
+
+import { getMarksBetween } from '../helpers/getMarksBetween.js'
+import { PasteRule, PasteRuleFinder } from '../PasteRule.js'
+import { ExtendedRegExpMatchArray } from '../types.js'
+import { callOrReturn } from '../utilities/callOrReturn.js'
 
 /**
  * Build an paste rule that adds a mark when the
  * matched text is pasted into it.
+ * @see https://tiptap.dev/docs/editor/extensions/custom-extensions/extend-existing#paste-rules
  */
-export default function markPasteRule(config: {
-  find: PasteRuleFinder,
-  type: MarkType,
+export function markPasteRule(config: {
+  find: PasteRuleFinder
+  type: MarkType
   getAttributes?:
     | Record<string, any>
-    | ((match: ExtendedRegExpMatchArray) => Record<string, any>)
+    | ((match: ExtendedRegExpMatchArray, event: ClipboardEvent) => Record<string, any>)
     | false
     | null
-  ,
 }) {
   return new PasteRule({
     find: config.find,
-    handler: ({ state, range, match }) => {
-      const attributes = callOrReturn(config.getAttributes, undefined, match)
+    handler: ({
+      state, range, match, pasteEvent,
+    }) => {
+      const attributes = callOrReturn(config.getAttributes, undefined, match, pasteEvent)
 
       if (attributes === false || attributes === null) {
-        return
+        return null
       }
 
       const { tr } = state
@@ -37,7 +40,7 @@ export default function markPasteRule(config: {
         const textStart = range.from + fullMatch.indexOf(captureGroup)
         const textEnd = textStart + captureGroup.length
 
-        const excludedMarks = getMarksBetween(range.from, range.to, state)
+        const excludedMarks = getMarksBetween(range.from, range.to, state.doc)
           .filter(item => {
             // @ts-ignore
             const excluded = item.mark.type.excluded as MarkType[]

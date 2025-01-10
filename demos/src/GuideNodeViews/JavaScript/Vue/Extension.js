@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from '@tiptap/core'
+import { mergeAttributes, Node } from '@tiptap/core'
 
 export default Node.create({
   name: 'nodeView',
@@ -45,16 +45,19 @@ export default Node.create({
       */
 
       const dom = document.createElement('div')
+
       dom.classList.add('node-view')
 
-      const label = document.createElement('span')
-      label.classList.add('label')
+      const label = document.createElement('label')
+
       label.innerHTML = 'Node view'
 
       const content = document.createElement('div')
+
       content.classList.add('content')
 
       const button = document.createElement('button')
+
       button.innerHTML = `This button has been clicked ${node.attrs.count} times.`
       button.addEventListener('click', () => {
         if (typeof getPos === 'function') {

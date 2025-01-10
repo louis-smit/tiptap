@@ -1,6 +1,11 @@
 import { Mark, mergeAttributes } from '@tiptap/core'
 
 export interface UnderlineOptions {
+  /**
+   * HTML attributes to add to the underline element.
+   * @default {}
+   * @example { class: 'foo' }
+   */
   HTMLAttributes: Record<string, any>,
 }
 
@@ -9,20 +14,27 @@ declare module '@tiptap/core' {
     underline: {
       /**
        * Set an underline mark
+       * @example editor.commands.setUnderline()
        */
       setUnderline: () => ReturnType,
       /**
        * Toggle an underline mark
+       * @example editor.commands.toggleUnderline()
        */
       toggleUnderline: () => ReturnType,
       /**
        * Unset an underline mark
+       * @example editor.commands.unsetUnderline()
        */
       unsetUnderline: () => ReturnType,
     }
   }
 }
 
+/**
+ * This extension allows you to create underline text.
+ * @see https://www.tiptap.dev/api/marks/underline
+ */
 export const Underline = Mark.create<UnderlineOptions>({
   name: 'underline',
 
@@ -52,13 +64,13 @@ export const Underline = Mark.create<UnderlineOptions>({
   addCommands() {
     return {
       setUnderline: () => ({ commands }) => {
-        return commands.setMark('underline')
+        return commands.setMark(this.name)
       },
       toggleUnderline: () => ({ commands }) => {
-        return commands.toggleMark('underline')
+        return commands.toggleMark(this.name)
       },
       unsetUnderline: () => ({ commands }) => {
-        return commands.unsetMark('underline')
+        return commands.unsetMark(this.name)
       },
     }
   },
@@ -66,6 +78,7 @@ export const Underline = Mark.create<UnderlineOptions>({
   addKeyboardShortcuts() {
     return {
       'Mod-u': () => this.editor.commands.toggleUnderline(),
+      'Mod-U': () => this.editor.commands.toggleUnderline(),
     }
   },
 })

@@ -1,53 +1,49 @@
 <template>
-  <div>
-    <editor-content :editor="editor" />
+  <editor-content :editor="editor" />
 
-    <div v-if="editor" :class="{'character-count': true, 'character-count--warning': editor.getCharacterCount() === limit}">
-      <svg
-        height="20"
-        width="20"
-        viewBox="0 0 20 20"
-        class="character-count__graph"
-      >
-        <circle
-          r="10"
-          cx="10"
-          cy="10"
-          fill="#e9ecef"
-        />
-        <circle
-          r="5"
-          cx="10"
-          cy="10"
-          fill="transparent"
-          stroke="currentColor"
-          stroke-width="10"
-          :stroke-dasharray="`calc(${percentage} * 31.4 / 100) 31.4`"
-          transform="rotate(-90) translate(-20)"
-        />
-        <circle
-          r="6"
-          cx="10"
-          cy="10"
-          fill="white"
-        />
-      </svg>
+  <div v-if="editor" :class="{'character-count': true, 'character-count--warning': editor.storage.characterCount.characters() === limit}">
+    <svg
+      height="20"
+      width="20"
+      viewBox="0 0 20 20"
+    >
+      <circle
+        r="10"
+        cx="10"
+        cy="10"
+        fill="#e9ecef"
+      />
+      <circle
+        r="5"
+        cx="10"
+        cy="10"
+        fill="transparent"
+        stroke="currentColor"
+        stroke-width="10"
+        :stroke-dasharray="`calc(${percentage} * 31.4 / 100) 31.4`"
+        transform="rotate(-90) translate(-20)"
+      />
+      <circle
+        r="6"
+        cx="10"
+        cy="10"
+        fill="white"
+      />
+    </svg>
 
-      <div class="character-count__text">
-        {{ editor.getCharacterCount() }}/{{ limit }} characters
-      </div>
-    </div>
+    {{ editor.storage.characterCount.characters() }} / {{ limit }} characters
   </div>
 </template>
 
 <script>
-import { Editor, EditorContent } from '@tiptap/vue-3'
+import CharacterCount from '@tiptap/extension-character-count'
 import Document from '@tiptap/extension-document'
+import Mention from '@tiptap/extension-mention'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import CharacterCount from '@tiptap/extension-character-count'
-import Mention from '@tiptap/extension-mention'
-import suggestion from './suggestion'
+import { Editor, EditorContent } from '@tiptap/vue-3'
+
+import suggestion from './suggestion.js'
 
 export default {
   components: {
@@ -79,7 +75,7 @@ export default {
       ],
       content: `
         <p>
-          What do you all think about the new <span data-mention data-id="Winona Ryder"></span> movie?
+          What do you all think about the new <span data-type="mention" data-id="Winona Ryder"></span> movie?
         </p>
       `,
     })
@@ -87,7 +83,7 @@ export default {
 
   computed: {
     percentage() {
-      return Math.round((100 / this.limit) * this.editor.getCharacterCount())
+      return Math.round((100 / this.limit) * this.editor.storage.characterCount.characters())
     },
   },
 
@@ -99,44 +95,36 @@ export default {
 
 <style lang="scss">
 /* Basic editor styles */
-.ProseMirror {
-  > * + * {
-    margin-top: 0.75em;
+.tiptap {
+  :first-child {
+    margin-top: 0;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    line-height: 1.1;
+  .mention {
+    background-color: var(--purple-light);
+    border-radius: 0.4rem;
+    box-decoration-break: clone;
+    color: var(--purple);
+    padding: 0.1rem 0.3rem;
   }
 }
 
-.mention {
-  border: 1px solid #000;
-  border-radius: 0.4rem;
-  padding: 0.1rem 0.3rem;
-  box-decoration-break: clone;
-}
-
+/* Character count */
 .character-count {
-  margin-top: 1rem;
-  display: flex;
   align-items: center;
-  color: #68CEF8;
+  color: var(--gray-5);
+  display: flex;
+  font-size: 0.75rem;
+  gap: .5rem;
+  margin: 1.5rem;
 
-  &--warning {
-    color: #FB5151;
+  svg {
+    color: var(--purple);
   }
 
-  &__graph {
-    margin-right: 0.5rem;
-  }
-
-  &__text {
-    color: #868e96;
+  &--warning,
+  &--warning svg {
+    color: var(--red);
   }
 }
 </style>

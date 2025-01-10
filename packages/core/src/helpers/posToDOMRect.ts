@@ -1,7 +1,8 @@
-import { EditorView } from 'prosemirror-view'
-import minMax from '../utilities/minMax'
+import { EditorView } from '@tiptap/pm/view'
 
-export default function posToDOMRect(view: EditorView, from: number, to: number): DOMRect {
+import { minMax } from '../utilities/minMax.js'
+
+export function posToDOMRect(view: EditorView, from: number, to: number): DOMRect {
   const minPos = 0
   const maxPos = view.state.doc.content.size
   const resolvedFrom = minMax(from, minPos, maxPos)

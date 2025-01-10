@@ -1,17 +1,28 @@
-import React, { useEffect, useRef } from 'react'
 import { FloatingMenuPlugin, FloatingMenuPluginProps } from '@tiptap/extension-floating-menu'
+import React, {
+  useEffect, useState,
+} from 'react'
+
+import { useCurrentEditor } from './Context.js'
 
 type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>
 
-export type FloatingMenuProps = Omit<Optional<FloatingMenuPluginProps, 'pluginKey'>, 'element'> & {
+export type FloatingMenuProps = Omit<Optional<FloatingMenuPluginProps, 'pluginKey'>, 'element' | 'editor'> & {
+  editor: FloatingMenuPluginProps['editor'] | null;
   className?: string,
+  children: React.ReactNode
 }
 
-export const FloatingMenu: React.FC<FloatingMenuProps> = props => {
-  const element = useRef<HTMLDivElement>(null)
+export const FloatingMenu = (props: FloatingMenuProps) => {
+  const [element, setElement] = useState<HTMLDivElement | null>(null)
+  const { editor: currentEditor } = useCurrentEditor()
 
   useEffect(() => {
-    if (!element.current) {
+    if (!element) {
+      return
+    }
+
+    if (props.editor?.isDestroyed || currentEditor?.isDestroyed) {
       return
     }
 
@@ -22,24 +33,31 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = props => {
       shouldShow = null,
     } = props
 
-    editor.registerPlugin(FloatingMenuPlugin({
+    const menuEditor = editor || currentEditor
+
+    if (!menuEditor) {
+      console.warn('FloatingMenu component is not rendered inside of an editor component or does not have editor prop.')
+      return
+    }
+
+    const plugin = FloatingMenuPlugin({
       pluginKey,
-      editor,
-      element: element.current as HTMLElement,
+      editor: menuEditor,
+      element,
       tippyOptions,
       shouldShow,
-    }))
+    })
 
-    return () => {
-      editor.unregisterPlugin(pluginKey)
-    }
+    menuEditor.registerPlugin(plugin)
+    return () => { menuEditor.unregisterPlugin(pluginKey) }
   }, [
     props.editor,
-    element.current,
+    currentEditor,
+    element,
   ])
 
   return (
-    <div ref={element} className={props.className} style={{ visibility: 'hidden' }}>
+    <div ref={setElement} className={props.className} style={{ visibility: 'hidden' }}>
       {props.children}
     </div>
   )

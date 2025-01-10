@@ -1,45 +1,56 @@
-import React, { useEffect, useRef } from 'react'
 import { BubbleMenuPlugin, BubbleMenuPluginProps } from '@tiptap/extension-bubble-menu'
+import React, { useEffect, useState } from 'react'
 
-type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>
+import { useCurrentEditor } from './Context.js'
 
-export type BubbleMenuProps = Omit<Optional<BubbleMenuPluginProps, 'pluginKey'>, 'element'> & {
-  className?: string,
-}
+type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 
-export const BubbleMenu: React.FC<BubbleMenuProps> = props => {
-  const element = useRef<HTMLDivElement>(null)
+export type BubbleMenuProps = Omit<Optional<BubbleMenuPluginProps, 'pluginKey'>, 'element' | 'editor'> & {
+  editor: BubbleMenuPluginProps['editor'] | null;
+  className?: string;
+  children: React.ReactNode;
+  updateDelay?: number;
+};
+
+export const BubbleMenu = (props: BubbleMenuProps) => {
+  const [element, setElement] = useState<HTMLDivElement | null>(null)
+  const { editor: currentEditor } = useCurrentEditor()
 
   useEffect(() => {
-    if (!element.current) {
+    if (!element) {
+      return
+    }
+
+    if (props.editor?.isDestroyed || currentEditor?.isDestroyed) {
       return
     }
 
     const {
-      pluginKey = 'bubbleMenu',
-      editor,
-      tippyOptions = {},
-      shouldShow = null,
+      pluginKey = 'bubbleMenu', editor, tippyOptions = {}, updateDelay, shouldShow = null,
     } = props
 
-    editor.registerPlugin(BubbleMenuPlugin({
-      pluginKey,
-      editor,
-      element: element.current as HTMLElement,
-      tippyOptions,
-      shouldShow,
-    }))
+    const menuEditor = editor || currentEditor
 
-    return () => {
-      editor.unregisterPlugin(pluginKey)
+    if (!menuEditor) {
+      console.warn('BubbleMenu component is not rendered inside of an editor component or does not have editor prop.')
+      return
     }
-  }, [
-    props.editor,
-    element.current,
-  ])
+
+    const plugin = BubbleMenuPlugin({
+      updateDelay,
+      editor: menuEditor,
+      element,
+      pluginKey,
+      shouldShow,
+      tippyOptions,
+    })
+
+    menuEditor.registerPlugin(plugin)
+    return () => { menuEditor.unregisterPlugin(pluginKey) }
+  }, [props.editor, currentEditor, element])
 
   return (
-    <div ref={element} className={props.className} style={{ visibility: 'hidden' }}>
+    <div ref={setElement} className={props.className} style={{ visibility: 'hidden' }}>
       {props.children}
     </div>
   )

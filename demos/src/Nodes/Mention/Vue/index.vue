@@ -5,12 +5,13 @@
 </template>
 
 <script>
-import { Editor, EditorContent } from '@tiptap/vue-3'
 import Document from '@tiptap/extension-document'
+import Mention from '@tiptap/extension-mention'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import Mention from '@tiptap/extension-mention'
-import suggestion from './suggestion'
+import { Editor, EditorContent } from '@tiptap/vue-3'
+
+import suggestion from './suggestion.js'
 
 export default {
   components: {
@@ -38,9 +39,9 @@ export default {
       ],
       content: `
         <p>Hi everyone! Don’t forget the daily stand up at 8 AM.</p>
-        <p><span data-mention data-id="Jennifer Grey"></span> Would you mind to share what you’ve been working on lately? We fear not much happened since Dirty Dancing.
-        <p><span data-mention data-id="Winona Ryder"></span> <span data-mention data-id="Axl Rose"></span> Let’s go through your most important points quickly.</p>
-        <p>I have a meeting with <span data-mention data-id="Christina Applegate"></span> and don’t want to come late.</p>
+        <p><span data-type="mention" data-id="Jennifer Grey"></span> Would you mind to share what you’ve been working on lately? We fear not much happened since Dirty Dancing.
+        <p><span data-type="mention" data-id="Winona Ryder"></span> <span data-type="mention" data-id="Axl Rose"></span> Let’s go through your most important points quickly.</p>
+        <p>I have a meeting with <span data-type="mention" data-id="Christina Applegate"></span> and don’t want to come late.</p>
         <p>– Thanks, your big boss</p>
       `,
     })
@@ -53,16 +54,18 @@ export default {
 </script>
 
 <style lang="scss">
-.ProseMirror {
-  > * + * {
-    margin-top: 0.75em;
+/* Basic editor styles */
+.tiptap {
+  :first-child {
+    margin-top: 0;
   }
-}
 
-.mention {
-  border: 1px solid #000;
-  border-radius: 0.4rem;
-  padding: 0.1rem 0.3rem;
-  box-decoration-break: clone;
+  .mention {
+    background-color: var(--purple-light);
+    border-radius: 0.4rem;
+    box-decoration-break: clone;
+    color: var(--purple);
+    padding: 0.1rem 0.3rem;
+  }
 }
 </style>

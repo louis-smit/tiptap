@@ -1,4 +1,4 @@
-const style = `.ProseMirror {
+export const style = `.ProseMirror {
   position: relative;
 }
 
@@ -27,14 +27,15 @@ img.ProseMirror-separator {
   display: inline !important;
   border: none !important;
   margin: 0 !important;
-  width: 1px !important;
-  height: 1px !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .ProseMirror-gapcursor {
   display: none;
   pointer-events: none;
   position: absolute;
+  margin: 0;
 }
 
 .ProseMirror-gapcursor:after {
@@ -72,5 +73,3 @@ img.ProseMirror-separator {
 .tippy-box[data-animation=fade][data-state=hidden] {
   opacity: 0
 }`
-
-export default style

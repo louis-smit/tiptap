@@ -1,66 +1,58 @@
-import { EditorState, Selection, TextSelection } from 'prosemirror-state'
-import { RawCommands, FocusPosition } from '../types'
-import minMax from '../utilities/minMax'
-import isTextSelection from '../helpers/isTextSelection'
-import isiOS from '../utilities/isiOS'
-
-function resolveSelection(state: EditorState, position: FocusPosition = null) {
-  if (!position) {
-    return null
-  }
-
-  if (position === 'start' || position === true) {
-    return {
-      from: 0,
-      to: 0,
-    }
-  }
-
-  if (position === 'end') {
-    const { size } = state.doc.content
-
-    return {
-      from: size,
-      to: size,
-    }
-  }
-
-  return {
-    from: position,
-    to: position,
-  }
-}
+import { isTextSelection } from '../helpers/isTextSelection.js'
+import { resolveFocusPosition } from '../helpers/resolveFocusPosition.js'
+import { FocusPosition, RawCommands } from '../types.js'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     focus: {
       /**
        * Focus the editor at the given position.
+       * @param position The position to focus at.
+       * @param options.scrollIntoView Scroll the focused position into view after focusing
+       * @example editor.commands.focus()
+       * @example editor.commands.focus(32, { scrollIntoView: false })
        */
-      focus: (position?: FocusPosition) => ReturnType,
+      focus: (
+        /**
+         * The position to focus at.
+         */
+        position?: FocusPosition,
+
+        /**
+         * Optional options
+         * @default { scrollIntoView: true }
+         */
+        options?: {
+          scrollIntoView?: boolean,
+        },
+      ) => ReturnType,
     }
   }
 }
 
-export const focus: RawCommands['focus'] = (position = null) => ({
+export const focus: RawCommands['focus'] = (position = null, options = {}) => ({
   editor,
   view,
   tr,
   dispatch,
 }) => {
+  options = {
+    scrollIntoView: true,
+    ...options,
+  }
+
   const delayedFocus = () => {
-    // focus within `requestAnimationFrame` breaks focus on iOS
-    // so we have to call this
-    if (isiOS()) {
-      (view.dom as HTMLElement).focus()
-    }
+    (view.dom as HTMLElement).focus()
 
     // For React we have to focus asynchronously. Otherwise wild things happen.
     // see: https://github.com/ueberdosis/tiptap/issues/1520
     requestAnimationFrame(() => {
       if (!editor.isDestroyed) {
         view.focus()
-        editor.commands.scrollIntoView()
+
+        if (options?.scrollIntoView) {
+          editor.commands.scrollIntoView()
+        }
       }
     })
   }
@@ -75,13 +67,9 @@ export const focus: RawCommands['focus'] = (position = null) => ({
     return true
   }
 
-  const { from, to } = resolveSelection(editor.state, position) || editor.state.selection
-  const { doc, storedMarks } = tr
-  const minPos = Selection.atStart(doc).from
-  const maxPos = Selection.atEnd(doc).to
-  const resolvedFrom = minMax(from, minPos, maxPos)
-  const resolvedEnd = minMax(to, minPos, maxPos)
-  const selection = TextSelection.create(doc, resolvedFrom, resolvedEnd)
+  // pass through tr.doc instead of editor.state.doc
+  // since transactions could change the editors state before this command has been run
+  const selection = resolveFocusPosition(tr.doc, position) || editor.state.selection
   const isSameSelection = editor.state.selection.eq(selection)
 
   if (dispatch) {
@@ -91,8 +79,8 @@ export const focus: RawCommands['focus'] = (position = null) => ({
 
     // `tr.setSelection` resets the stored marks
     // so we’ll restore them if the selection is the same as before
-    if (isSameSelection && storedMarks) {
-      tr.setStoredMarks(storedMarks)
+    if (isSameSelection && tr.storedMarks) {
+      tr.setStoredMarks(tr.storedMarks)
     }
 
     delayedFocus()

@@ -1,10 +1,11 @@
-import { RawCommands } from '../types'
+import { RawCommands } from '../types.js'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     undoInputRule: {
       /**
        * Undo an input rule.
+       * @example editor.commands.undoInputRule()
        */
       undoInputRule: () => ReturnType,
     }
@@ -31,6 +32,7 @@ export const undoInputRule: RawCommands['undoInputRule'] = () => ({ state, dispa
 
         if (undoable.text) {
           const marks = tr.doc.resolve(undoable.from).marks()
+
           tr.replaceWith(undoable.from, undoable.to, state.schema.text(undoable.text, marks))
         } else {
           tr.delete(undoable.from, undoable.to)

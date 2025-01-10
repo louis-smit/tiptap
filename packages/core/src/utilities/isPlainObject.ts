@@ -4,7 +4,10 @@ function getType(value: any): string {
   return Object.prototype.toString.call(value).slice(8, -1)
 }
 
-export default function isPlainObject(value: any): value is Record<string, any> {
-  if (getType(value) !== 'Object') return false
+export function isPlainObject(value: any): value is Record<string, any> {
+  if (getType(value) !== 'Object') {
+    return false
+  }
+
   return value.constructor === Object && Object.getPrototypeOf(value) === Object.prototype
 }
